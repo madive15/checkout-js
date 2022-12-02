@@ -9,14 +9,13 @@ import {
 import { noop } from 'lodash';
 import React, { Component, ReactNode } from 'react';
 
-import { AddressFormSkeleton } from '@bigcommerce/checkout/ui';
-
 import { isEqualAddress, mapAddressFromFormValues } from '../address';
 import { CheckoutContextProps, withCheckout } from '../checkout';
 import { EMPTY_ARRAY, isFloatingLabelEnabled } from '../common/utility';
 import { TranslatedString } from '../locale';
 import { getShippableItemsCount } from '../shipping';
 import { Legend } from '../ui/form';
+import { LoadingOverlay } from '../ui/loading';
 
 import BillingForm, { BillingFormValues } from './BillingForm';
 import getBillingMethodId from './getBillingMethodId';
@@ -38,6 +37,7 @@ export interface WithCheckoutBillingProps {
     shouldShowOrderComments: boolean;
     billingAddress?: Address;
     methodId?: string;
+    hasDigitalItems:any;
     useFloatingLabel?: boolean;
     getFields(countryCode?: string): FormField[];
     initialize(): Promise<CheckoutSelectors>;
@@ -63,20 +63,21 @@ class Billing extends Component<BillingProps & WithCheckoutBillingProps> {
         const { updateAddress, isInitializing, ...props } = this.props;
 
         return (
-            <AddressFormSkeleton isLoading={isInitializing}>
-                <div className="checkout-form">
-                    <div className="form-legend-container">
-                        <Legend testId="billing-address-heading">
-                            <TranslatedString id="billing.billing_address_heading" />
-                        </Legend>
-                    </div>
+            <div className="checkout-form">
+                <div className="form-legend-container">
+                    <Legend testId="billing-address-heading">
+                        <TranslatedString id="billing.billing_address_heading" />
+                    </Legend>
+                </div>
+
+                <LoadingOverlay isLoading={isInitializing} unmountContentWhenLoading>
                     <BillingForm
                         {...props}
                         onSubmit={this.handleSubmit}
                         updateAddress={updateAddress}
                     />
-                </div>
-            </AddressFormSkeleton>
+                </LoadingOverlay>
+            </div>
         );
     }
 
@@ -166,6 +167,7 @@ function mapToBillingProps({
         updateAddress: checkoutService.updateBillingAddress,
         updateCheckout: checkoutService.updateCheckout,
         useFloatingLabel: isFloatingLabelEnabled(config.checkoutSettings),
+        hasDigitalItems: cart.lineItems.digitalItems.length
     };
 }
 

@@ -19,7 +19,6 @@
 
 .checkout-step {
     border-bottom: container("border");
-    counter-increment: $checkoutStep-counter;
     padding: spacing("single") 0;
 
     &:last-child {
@@ -45,8 +44,7 @@
     margin-bottom: spacing("single");
 }
 
-.checkout-form,
-.checklist-skeleton {
+.checkout-form {
     margin: 0;
 
     @include breakpoint("small") {
@@ -77,6 +75,7 @@
 
         color: $checkoutStep-counter-color;
         content: counter($checkoutStep-counter);
+        // counter-increment: $checkoutStep-counter;
         display: inline-block;
         font-size: fontSize("small");
         line-height: #{$checkoutStep-counter-size}px;

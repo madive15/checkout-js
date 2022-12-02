@@ -9,8 +9,6 @@ import { FormikProps, withFormik } from 'formik';
 import React, { createRef, PureComponent, ReactNode, RefObject } from 'react';
 import { lazy } from 'yup';
 
-import { AddressFormSkeleton } from '@bigcommerce/checkout/ui';
-
 import {
     AddressForm,
     AddressFormValues,
@@ -42,6 +40,7 @@ export interface BillingFormProps {
     methodId?: string;
     shouldShowOrderComments: boolean;
     useFloatingLabel?: boolean;
+    hasDigitalItems:any;
     getFields(countryCode?: string): FormField[];
     onSubmit(values: BillingFormValues): void;
     onUnhandledError(error: Error): void;
@@ -72,7 +71,8 @@ class BillingForm extends PureComponent<
             countries,
             isUpdating,
             setFieldValue,
-            shouldShowOrderComments,
+            // shouldShowOrderComments,
+            hasDigitalItems,
             values,
             methodId,
             useFloatingLabel,
@@ -119,7 +119,7 @@ class BillingForm extends PureComponent<
                     )}
 
                     {!hasValidCustomerAddress && (
-                        <AddressFormSkeleton isLoading={isResettingAddress}>
+                        <LoadingOverlay isLoading={isResettingAddress}>
                             <AddressForm
                                 countries={countries}
                                 countriesWithAutocomplete={countriesWithAutocomplete}
@@ -130,11 +130,11 @@ class BillingForm extends PureComponent<
                                 shouldShowSaveAddress={!isGuest}
                                 useFloatingLabel={useFloatingLabel}
                             />
-                        </AddressFormSkeleton>
+                        </LoadingOverlay>
                     )}
                 </Fieldset>
 
-                {shouldShowOrderComments && <OrderComments />}
+                {hasDigitalItems < 0 && <OrderComments />}
 
                 <div className="form-actions">
                     <Button

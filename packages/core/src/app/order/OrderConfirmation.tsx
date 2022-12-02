@@ -1,18 +1,17 @@
 import {
+    BodlService,
     CheckoutSelectors,
     EmbeddedCheckoutMessenger,
     EmbeddedCheckoutMessengerOptions,
     Order,
     ShopperConfig,
+    StepTracker,
     StoreConfig,
 } from '@bigcommerce/checkout-sdk';
 import classNames from 'classnames';
 import DOMPurify from 'dompurify';
 import React, { Component, lazy, ReactNode } from 'react';
 
-import { AnalyticsContextProps } from '@bigcommerce/checkout/analytics';
-
-import { withAnalytics } from '../analytics';
 import { CheckoutContextProps, withCheckout } from '../checkout';
 import { ErrorLogger, ErrorModal } from '../common/error';
 import { retry } from '../common/utility';
@@ -74,6 +73,8 @@ export interface OrderConfirmationProps {
     orderId: number;
     createAccount(values: SignUpFormValues): Promise<CreatedCustomer>;
     createEmbeddedMessenger(options: EmbeddedCheckoutMessengerOptions): EmbeddedCheckoutMessenger;
+    createStepTracker(): StepTracker;
+    createBodlService(): BodlService;
 }
 
 interface WithCheckoutOrderConfirmationProps {
@@ -84,7 +85,7 @@ interface WithCheckoutOrderConfirmationProps {
 }
 
 class OrderConfirmation extends Component<
-    OrderConfirmationProps & WithCheckoutOrderConfirmationProps & AnalyticsContextProps,
+    OrderConfirmationProps & WithCheckoutOrderConfirmationProps,
     OrderConfirmationState
 > {
     state: OrderConfirmationState = {};
@@ -95,10 +96,11 @@ class OrderConfirmation extends Component<
         const {
             containerId,
             createEmbeddedMessenger,
+            createStepTracker,
+            createBodlService,
             embeddedStylesheet,
             loadOrder,
             orderId,
-            analyticsTracker
         } = this.props;
 
         loadOrder(orderId)
@@ -111,7 +113,8 @@ class OrderConfirmation extends Component<
                 messenger.receiveStyles((styles) => embeddedStylesheet.append(styles));
                 messenger.postFrameLoaded({ contentId: containerId });
 
-                analyticsTracker.orderPurchased();
+                createStepTracker().trackOrderComplete();
+                createBodlService().orderPurchased();
             })
             .catch(this.handleUnhandledError);
     }
@@ -130,6 +133,21 @@ class OrderConfirmation extends Component<
             links: { siteLink },
         } = config;
 
+        const MEMBERSHIP_URL = "https://yamato.madive.co.kr",
+              cartItem = order.lineItems.digitalItems,
+              cartItem2 = order.lineItems.physicalItems,
+              filterItem = cartItem.find(item => item.sku.includes('Member-')),
+              filterItem2 = cartItem2.find(item => item.sku.includes('Member-'));
+
+        if (filterItem || filterItem2) {
+
+            console.log(`${MEMBERSHIP_URL}/api/order/membershipUpdate.json?membershipId=${order.customerId}-${order.orderId}`);
+
+            fetch(`${MEMBERSHIP_URL}/api/order/membershipUpdate.json?membershipId=${order.customerId}-${order.orderId}`)
+                .then(res => { console.log(res) })
+        }
+
+
         return (
             <div
                 className={classNames('layout optimizedCheckout-contentPrimary', {
@@ -138,7 +156,7 @@ class OrderConfirmation extends Component<
             >
                 <div className="layout-main">
                     <div className="orderConfirmation">
-                        <ThankYouHeader name={order.billingAddress.firstName} />
+                        <ThankYouHeader name={`${order.billingAddress.lastName} ${order.billingAddress.firstName}`} />
 
                         <OrderStatus
                             order={order}
@@ -343,4 +361,4 @@ export function mapToOrderConfirmationProps(
     };
 }
 
-export default withAnalytics(withCheckout(mapToOrderConfirmationProps)(OrderConfirmation));
+export default withCheckout(mapToOrderConfirmationProps)(OrderConfirmation);
