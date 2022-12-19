@@ -1,5 +1,5 @@
 import {  Cart, ShippingOption} from '@bigcommerce/checkout-sdk';
-import React, { FunctionComponent, useCallback, useEffect, useState } from 'react'; //add memo 
+import React, { FunctionComponent, memo, useCallback, useEffect, useState } from 'react'; //add memo 
 import { CheckoutContextProps , withCheckout } from '../../checkout';
 import { EMPTY_ARRAY } from '../../common/utility';
 import { Checklist, ChecklistItem } from '../../ui/form';
@@ -128,5 +128,5 @@ export function mapToDonationProps({
     };
 }
 
-export default withCheckout(mapToDonationProps)(ShippingOptionsList);
+export default memo(withCheckout(mapToDonationProps)(ShippingOptionsList));
 
