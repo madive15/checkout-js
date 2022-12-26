@@ -101,13 +101,13 @@ const ShippingOptionsList: FunctionComponent<ShippingOptionListProps & WithCheck
     // const FREE_SHIPPING_ID = "4dcbf24f457dd67d5f89bcf374e0bc9b";
 
     useEffect(() => {
-        // 배송비 이상일때 
+        // 배송비 이상일때..
         if (cart.cartAmount >= 5000) {
             setData(FREE_COST);
             putShippingCost(FREE_COST[0].id);
         }
 
-        // 배송비 미만일때 
+        // 배송비 미만일때..
         if (cart.cartAmount < 5000) {
             putShippingCost(SHPPING_COST[0].id);
         }
