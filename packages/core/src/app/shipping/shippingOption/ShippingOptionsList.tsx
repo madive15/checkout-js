@@ -1,6 +1,6 @@
-import {  Cart, ShippingOption} from '@bigcommerce/checkout-sdk';
-import React, { FunctionComponent, memo, useCallback, useEffect, useState } from 'react'; //add memo 
-import { CheckoutContextProps , withCheckout } from '../../checkout';
+import { Cart,OrderShippingConsignment, ShippingOption, Consignment, RequestOptions, CheckoutParams, CheckoutSelectors } from '@bigcommerce/checkout-sdk';
+import React, { FunctionComponent, memo, useCallback, useState, useEffect } from 'react'; //add memo 
+import { CheckoutContextProps, withCheckout } from '../../checkout';
 import { EMPTY_ARRAY } from '../../common/utility';
 import { Checklist, ChecklistItem } from '../../ui/form';
 import { LoadingOverlay } from '../../ui/loading';
@@ -10,11 +10,12 @@ import StaticShippingOption from './StaticShippingOption';
 interface ShippingOptionListItemProps {
     consignmentId: string;
     shippingOption: ShippingOption;
+    test?:OrderShippingConsignment
 }
-
 const ShippingOptionListItem: FunctionComponent<ShippingOptionListItemProps> = ({
     consignmentId,
     shippingOption,
+    test,
 }) => {
     const renderLabel = useCallback(
         () => (
@@ -24,7 +25,7 @@ const ShippingOptionListItem: FunctionComponent<ShippingOptionListItemProps> = (
         ),
         [shippingOption],
     );
-
+    console.log(test?.handlingCostExTax);
     return (
         <ChecklistItem
             htmlId={`shippingOptionRadio-${consignmentId}-${shippingOption.id}`}
@@ -34,28 +35,34 @@ const ShippingOptionListItem: FunctionComponent<ShippingOptionListItemProps> = (
     );
 };
 
+
+
 export interface ShippingOptionListProps {
     consignmentId: string;
     inputName: string;
     isLoading: boolean;
     selectedShippingOptionId?: string;
     shippingOptions?: ShippingOption[];
+
     onSelectedOption(consignmentId: string, shippingOptionId: string): void;
 }
 
 
 export interface WithCheckoutShippingProps {
     cart: Cart;
+    consignments: Consignment[];
+    loadCheckout(id: any, options?: RequestOptions<CheckoutParams>): Promise<CheckoutSelectors>;
 }
 
-const ShippingOptionsList: FunctionComponent<ShippingOptionListProps & WithCheckoutShippingProps>  = ({
+const ShippingOptionsList: FunctionComponent<ShippingOptionListProps & WithCheckoutShippingProps> = ({
     consignmentId,
     inputName,
     isLoading,
     shippingOptions = EMPTY_ARRAY,
     selectedShippingOptionId,
-    onSelectedOption,
     cart,
+    loadCheckout,
+    onSelectedOption
 }) => {
     const handleSelect = useCallback(
         (value: string) => {
@@ -68,20 +75,43 @@ const ShippingOptionsList: FunctionComponent<ShippingOptionListProps & WithCheck
         return null;
     }
 
-    const shippingCost = "8706727f0a72a08c11ee2e793135df5d";
-    const [data , setData ]= useState(shippingOptions);
+    const [data, setData] = useState(shippingOptions);
 
-    const afterData = data.filter((item)=>{
-        return item.id !== shippingCost;
-    })
+    const FREE_COST = data.filter(item => item.cost === 0); //Free Shipping filter items
+    const SHPPING_COST = data.filter(item => item.cost > 1); //Paied Shipping filter items
 
-    useEffect(()=>{
-        if(cart.cartAmount > 10000){
-            setData(afterData);
+    const putShippingCost = (method: string) => {
+        const options = {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                "shippingOptionId": method
+            })
+        };
+        fetch(`/api/storefront/checkouts/${cart.id}/consignments/${consignmentId}`, options)
+            .then(response => response.json())
+            .then(response => {
+                console.log(response);
+                loadCheckout(cart.id);
+            })
+            .catch(err => console.error(err));
+    }
+
+    // const SHPPING_COST_ID = "e7596fca2d5bc3ff4011a84bd1d763b9";
+    // const FREE_SHIPPING_ID = "4dcbf24f457dd67d5f89bcf374e0bc9b";
+
+    useEffect(() => {
+        // 배송비 이상일때 
+        if (cart.cartAmount >= 5000) {
+            setData(FREE_COST);
+            putShippingCost(FREE_COST[0].id);
         }
-    },[]);
 
-    console.log("=================="+cart.baseAmount , cart.cartAmount);
+        // 배송비 미만일때 
+        if (cart.cartAmount < 5000) {
+            putShippingCost(SHPPING_COST[0].id);
+        }
+    }, [])
 
     return (
         <LoadingOverlay isLoading={isLoading}>
@@ -106,18 +136,25 @@ const ShippingOptionsList: FunctionComponent<ShippingOptionListProps & WithCheck
 
 
 export function mapToDonationProps({
+    checkoutService,
     checkoutState,
 }: CheckoutContextProps): WithCheckoutShippingProps | null {
     const {
         data: {
             getCart,
             getCheckout,
+            getConsignments,
+            //getShippingOptions,
         }
     } = checkoutState;
 
     const checkout = getCheckout();
     const cart = getCart();
-    // const consignments = getConsignments() || [];
+    const consignments = getConsignments() || [];
+    // const shipping = getShippingOptions()
+
+    // console.log(checkoutState);
+    // console.log(checkoutService);
 
     if (!checkout || !cart) {
         return null;
@@ -125,6 +162,8 @@ export function mapToDonationProps({
 
     return {
         cart,
+        consignments,
+        loadCheckout: checkoutService.loadCheckout
     };
 }
 
