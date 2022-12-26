@@ -77,8 +77,8 @@ const ShippingOptionsList: FunctionComponent<ShippingOptionListProps & WithCheck
 
     const [data, setData] = useState(shippingOptions);
 
-    const FREE_COST = data.filter(item => item.cost === 0); //Free Shipping filter items
-    const SHPPING_COST = data.filter(item => item.cost > 1); //Paied Shipping filter items
+    const FREE_COST = data.filter(item => item.cost === 0); //Free Shipping filter items..
+    const SHPPING_COST = data.filter(item => item.cost > 1); //Paied Shipping filter items..
 
     const putShippingCost = (method: string) => {
         const options = {
