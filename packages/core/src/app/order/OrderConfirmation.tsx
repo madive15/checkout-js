@@ -134,12 +134,11 @@ class OrderConfirmation extends Component<
         } = config;
 
         const MEMBERSHIP_URL = "https://yamato.madive.co.kr",
-              cartItem = order.lineItems.digitalItems,
-              cartItem2 = order.lineItems.physicalItems,
-              filterItem = cartItem.find(item => item.sku.includes('Member-')),
-              filterItem2 = cartItem2.find(item => item.sku.includes('Member-'));
+              cartItem = order.lineItems.digitalItems || order.lineItems.physicalItems,
+              filterItem = cartItem.find(item => item.sku.includes('Member-'));
+            //   filterItem2 = cartItem2.find(item => item.sku.includes('Member-'));
 
-        if (filterItem || filterItem2) {
+        if (filterItem) {
 
             console.log(`${MEMBERSHIP_URL}/api/order/membershipUpdate.json?membershipId=${order.customerId}-${order.orderId}`);
 

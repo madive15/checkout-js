@@ -49,6 +49,8 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
     const index3 = findIndex(lineitems!.physicalItems!, { sku: "COD3" });
     const index4 = findIndex(lineitems!.physicalItems!, { sku: "COD4" });
 
+    console.log('github madive');
+
     const displayCouponName = (coupon: IDisplayCoupon) =>{
         return coupon.displayName.includes('off the order total') ? coupon.displayName.replace('off the order total', '割引')
             : coupon.displayName.includes('Free shipping') ? coupon.displayName.replace('Free shipping', '送料無料')
@@ -56,7 +58,7 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
                     : coupon.displayName.includes('off the shipping total') ? coupon.displayName.replace('off the shipping total', '送料割引')
                         : coupon.displayName;
     }
-
+              
     return (
         <>
             <OrderSummaryPrice
