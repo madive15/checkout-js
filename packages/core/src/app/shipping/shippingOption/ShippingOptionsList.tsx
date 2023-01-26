@@ -102,13 +102,13 @@ const ShippingOptionsList: FunctionComponent<ShippingOptionListProps & WithCheck
 
     useEffect(() => {
         // 배송비 이상일때..
-        if (cart.cartAmount >= 5000) {
+        if (cart.cartAmount >= 10000) {
             setData(FREE_COST);
             putShippingCost(FREE_COST[0].id);
         }
 
         // 배송비 미만일때..
-        if (cart.cartAmount < 5000) {
+        if (cart.cartAmount < 10000) {
             putShippingCost(SHPPING_COST[0].id);
         }
     }, [])

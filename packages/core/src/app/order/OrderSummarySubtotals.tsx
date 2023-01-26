@@ -23,6 +23,11 @@ export interface OrderSummarySubtotalsProps {
     onRemovedCoupon?(code: string): void;
 }
 
+interface IDisplayCoupon{
+    coupon?:string;
+    displayName:string;
+}
+
 const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
     lineitems,
     discountAmount,
@@ -43,7 +48,14 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
     const index2 = findIndex(lineitems!.physicalItems!, { sku: "COD2" });
     const index3 = findIndex(lineitems!.physicalItems!, { sku: "COD3" });
     const index4 = findIndex(lineitems!.physicalItems!, { sku: "COD4" });
-    // index는 sku값 COD1 을 갖고있는 index를 찾아줌. by loadsh.findIndex();
+
+    const displayCouponName = (coupon: IDisplayCoupon) =>{
+        return coupon.displayName.includes('off the order total') ? coupon.displayName.replace('off the order total', '割引')
+            : coupon.displayName.includes('Free shipping') ? coupon.displayName.replace('Free shipping', '送料無料')
+                : coupon.displayName.includes('off each item') ? coupon.displayName.replace('off each item', '各アイテム当')
+                    : coupon.displayName.includes('off the shipping total') ? coupon.displayName.replace('off the shipping total', '送料割引')
+                        : coupon.displayName;
+    }
 
     return (
         <>
@@ -82,7 +94,7 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
                     amount={coupon.discountedAmount}
                     code={coupon.code}
                     key={index}
-                    label={coupon.displayName}
+                    label={displayCouponName(coupon)}
                     onRemoved={onRemovedCoupon}
                     testId="cart-coupon"
                 />
